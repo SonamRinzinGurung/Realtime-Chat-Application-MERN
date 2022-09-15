@@ -1,19 +1,69 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Await, Link } from "react-router-dom";
 import styled from "styled-components";
 import Logo from "../assets/logo.svg";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import axios from "axios";
 
 const Register = () => {
-  const handleSubmit = (e) => {
+  const [values, setValues] = useState({
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const toastOptions = {
+    position: "bottom-right",
+    autoClose: 8000,
+    pauseOnHover: true,
+    draggable: true,
+    theme: "dark",
+  };
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert("Register");
+    const { username, email, password, confirmPassword } = values;
+
+    if (handleValidation()) {
+      const { data } = await axios.post(
+        "http://localhost:5000/api/auth/register",
+        {
+          username,
+          email,
+          password,
+        }
+      );
+      console.log(data);
+    }
   };
 
-  const handleChange = (e) => {};
+  const handleValidation = () => {
+    const { username, email, password, confirmPassword } = values;
+
+    if (password !== confirmPassword) {
+      toast.error("Password does not match", toastOptions);
+      return false;
+    } else if (username.length <= 3) {
+      toast.error("Username should have more than 3 characters", toastOptions);
+      return false;
+    } else if (password.length <= 6) {
+      toast.error("Password must be greater than 6 characters", toastOptions);
+      return false;
+    } else if (email === "") {
+      toast.error("Email is required", toastOptions);
+      return false;
+    }
+    return true;
+  };
+
+  const handleChange = (e) => {
+    setValues({ ...values, [e.target.name]: e.target.value });
+  };
   return (
     <>
       <FormContainer>
-        <form onSubmit={(e) => handleSubmit}>
+        <form onSubmit={(e) => handleSubmit(e)}>
           <div className="brand">
             <img src={Logo} alt="" />
             <h1>Chat App</h1>
@@ -25,7 +75,7 @@ const Register = () => {
             onChange={(e) => handleChange(e)}
           />
           <input
-            type="text"
+            type="email"
             name="email"
             placeholder="Email"
             onChange={(e) => handleChange(e)}
@@ -38,7 +88,7 @@ const Register = () => {
           />
           <input
             type="password"
-            name="confirmpassword"
+            name="confirmPassword"
             placeholder="Confirm Password"
             onChange={(e) => handleChange(e)}
           />
@@ -48,6 +98,7 @@ const Register = () => {
           </span>
         </form>
       </FormContainer>
+      <ToastContainer />
     </>
   );
 };
