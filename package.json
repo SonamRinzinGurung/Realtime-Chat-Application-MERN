@@ -1,0 +1,29 @@
+{
+  "name": "chat-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SonamRinzinGurung/Realtime-Chat-Application-MERN.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SonamRinzinGurung/Realtime-Chat-Application-MERN/issues"
+  },
+  "homepage": "https://github.com/SonamRinzinGurung/Realtime-Chat-Application-MERN#readme",
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.2",
+    "express": "^4.18.1",
+    "mongoose": "^6.6.1",
+    "nodemon": "^2.0.19",
+    "socket.io": "^4.5.2"
+  }
+}
