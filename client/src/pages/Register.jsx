@@ -1,6 +1,6 @@
 import React from "react";
 import { useState } from "react";
-import { Await, Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Logo from "../assets/logo.svg";
 import { toast, ToastContainer } from "react-toastify";
@@ -8,6 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 
 const Register = () => {
+  const navigate = useNavigate();
   const [values, setValues] = useState({
     username: "",
     email: "",
@@ -23,7 +24,7 @@ const Register = () => {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { username, email, password, confirmPassword } = values;
+    const { username, email, password } = values;
 
     if (handleValidation()) {
       const { data } = await axios.post(
@@ -34,7 +35,13 @@ const Register = () => {
           password,
         }
       );
-      console.log(data);
+      if (data.status === false) {
+        toast.error(data.message, toastOptions);
+      }
+      if (data.status === true) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+        navigate("/");
+      }
     }
   };
 
@@ -44,11 +51,11 @@ const Register = () => {
     if (password !== confirmPassword) {
       toast.error("Password does not match", toastOptions);
       return false;
-    } else if (username.length <= 3) {
-      toast.error("Username should have more than 3 characters", toastOptions);
+    } else if (username.length < 6) {
+      toast.error("Username should have more than 5 characters", toastOptions);
       return false;
-    } else if (password.length <= 6) {
-      toast.error("Password must be greater than 6 characters", toastOptions);
+    } else if (password.length < 6) {
+      toast.error("Password must be greater than 5 characters", toastOptions);
       return false;
     } else if (email === "") {
       toast.error("Email is required", toastOptions);
