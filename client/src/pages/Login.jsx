@@ -1,5 +1,4 @@
-import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Logo from "../assets/logo.svg";
@@ -20,33 +19,17 @@ const Login = () => {
     draggable: true,
     theme: "dark",
   };
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const { username, password } = values;
 
-    if (handleValidation()) {
-      const { data } = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        {
-          username,
-
-          password,
-        }
-      );
-      if (data.status === false) {
-        toast.error(data.message, toastOptions);
-      }
-      if (data.status === true) {
-        localStorage.setItem("user", JSON.stringify(data.user));
-        navigate("/");
-      }
+  useEffect(() => {
+    if (localStorage.getItem("user")) {
+      navigate("/");
     }
-  };
+  }, []);
 
   const handleValidation = () => {
     const { username, password } = values;
 
-    if (username.length === 0) {
+    if (username === "") {
       toast.error("Username is required", toastOptions);
       return false;
     } else if (password === "") {
@@ -58,6 +41,32 @@ const Login = () => {
 
   const handleChange = (e) => {
     setValues({ ...values, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const { username, password } = values;
+
+    if (handleValidation()) {
+      try {
+        const { data } = await axios.post(
+          "http://localhost:5000/api/auth/login",
+          {
+            username,
+            password,
+          }
+        );
+        if (data.status === false) {
+          toast.error(data.message, toastOptions);
+        }
+        if (data.status === true) {
+          localStorage.setItem("user", JSON.stringify(data.user));
+          navigate("/");
+        }
+      } catch (error) {
+        toast.error(error.response.message, toastOptions);
+      }
+    }
   };
   return (
     <>

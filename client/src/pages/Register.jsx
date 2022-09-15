@@ -1,5 +1,5 @@
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Logo from "../assets/logo.svg";
@@ -22,6 +22,12 @@ const Register = () => {
     draggable: true,
     theme: "dark",
   };
+  useEffect(() => {
+    if (localStorage.getItem("user")) {
+      navigate("/");
+    }
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const { username, email, password } = values;
