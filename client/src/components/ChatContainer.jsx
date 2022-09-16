@@ -2,9 +2,16 @@ import React from "react";
 import styled from "styled-components";
 import Logout from "./Logout";
 import ChatInput from "./ChatInput";
-
-const ChatContainer = ({ currentChat }) => {
-  const handleSendMsg = async (msg) => {};
+import axios from "axios";
+const ChatContainer = ({ currentChat, currentUser }) => {
+  const handleSendMsg = async (msg) => {
+    const url = "http://localhost:5000/api/messages/addmsg";
+    await axios.post(url, {
+      from: currentUser?._id,
+      to: currentChat?._id,
+      message: msg,
+    });
+  };
   return (
     <Container>
       <div className="chat-header">
