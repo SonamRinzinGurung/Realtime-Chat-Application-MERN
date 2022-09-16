@@ -3,6 +3,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 
 const app = express();
+const socket = require("socket.io");
 
 require("dotenv").config();
 const morgan = require("morgan");
@@ -31,4 +32,26 @@ mongoose
 const port = process.env.PORT;
 const server = app.listen(port, () => {
   console.log(`Server is listening on port ${port}...`);
+});
+
+const io = socket(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    credentials: true,
+  },
+});
+
+global.onlineUsers = new Map();
+
+io.on("connection", (socket) => {
+  global.chatSocket = socket;
+  socket.on("add-user", (userId) => {
+    onlineUsers.set(userId, socket.id);
+  });
+  socket.on("send-msg", (data) => {
+    const sendUserSocket = onlineUsers.get(data.to);
+    if (sendUserSocket) {
+      socket.to(sendUserSocket).emit("msg-receive", data.msg);
+    }
+  });
 });
