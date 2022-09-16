@@ -1,9 +1,26 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import Logout from "./Logout";
 import ChatInput from "./ChatInput";
 import axios from "axios";
+
 const ChatContainer = ({ currentChat, currentUser }) => {
+  const [messages, setMessages] = useState([]);
+  useEffect(() => {
+    getMessages();
+  }, [currentChat]);
+
+  const getMessages = async () => {
+    const { data } = await axios.post(
+      `http://localhost:5000/api/messages/getmsg`,
+      {
+        from: currentUser._id,
+        to: currentChat._id,
+      }
+    );
+    setMessages(data);
+  };
+
   const handleSendMsg = async (msg) => {
     const url = "http://localhost:5000/api/messages/addmsg";
     await axios.post(url, {
@@ -28,7 +45,17 @@ const ChatContainer = ({ currentChat, currentUser }) => {
         </div>
         <Logout />
       </div>
-      <div className="chat-messages"></div>
+      <div className="chat-messages">
+        {messages.map((msg) => {
+          return (
+            <div className={`message ${msg.fromSelf ? "sent" : "received"}`}>
+              <div className="content">
+                <p>{msg.message}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
       <ChatInput handleSendMsg={handleSendMsg} />
     </Container>
   );
@@ -92,13 +119,13 @@ const Container = styled.div`
         }
       }
     }
-    .sended {
+    .sent {
       justify-content: flex-end;
       .content {
         background-color: #4f04ff21;
       }
     }
-    .recieved {
+    .received {
       justify-content: flex-start;
       .content {
         background-color: #9900ff20;
