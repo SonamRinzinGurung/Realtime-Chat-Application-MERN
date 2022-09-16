@@ -64,3 +64,33 @@ module.exports.login = async (req, res, next) => {
     next(error);
   }
 };
+
+module.exports.setAvatar = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+    const avatarImg = req.body.image;
+
+    const user = await User.findByIdAndUpdate(userId, {
+      isAvatarImageSet: true,
+      avatarImage: avatarImg,
+    });
+    return res.json({ isSet: user.isAvatarImageSet, image: user.avatarImage });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports.getAllUsers = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+    const users = await User.find({ _id: { $ne: userId } }).select([
+      "email",
+      "username",
+      "avatarImage",
+      "_id",
+    ]);
+    return res.json(users);
+  } catch (error) {
+    next(error);
+  }
+};

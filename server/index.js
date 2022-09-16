@@ -5,7 +5,12 @@ const mongoose = require("mongoose");
 const app = express();
 
 require("dotenv").config();
+const morgan = require("morgan");
 const userRoutes = require("./routes/userRoutes");
+
+if (process.env.NODE_ENV !== "production") {
+  app.use(morgan("dev"));
+}
 
 app.use(cors());
 app.use(express.json());

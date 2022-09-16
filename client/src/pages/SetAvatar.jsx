@@ -21,7 +21,11 @@ const SetAvatar = () => {
     draggable: true,
     theme: "dark",
   };
-
+  useEffect(() => {
+    if (!localStorage.getItem("user")) {
+      navigate("/login");
+    }
+  }, []);
   const setPFP = async () => {
     if (selectedAvatar === undefined) {
       toast.error("Please select an avatar", toastOptions);
@@ -29,7 +33,7 @@ const SetAvatar = () => {
       const user = await JSON.parse(localStorage.getItem("user"));
 
       const { data } = await axios.post(
-        `http://localhost:5000/api/auth/setavatar/${user._id}`,
+        `http://localhost:5000/api/auth/setAvatar/${user._id}`,
         {
           image: avatars[selectedAvatar],
         }
