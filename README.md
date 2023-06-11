@@ -1,6 +1,6 @@
 ## Real Time Chat Application
 
-#####[Live Application](https://chat-app-mern-ptni.onrender.com/)
+#### [Live Application](https://chat-app-mern-ptni.onrender.com/)
 
 ### Description
 
