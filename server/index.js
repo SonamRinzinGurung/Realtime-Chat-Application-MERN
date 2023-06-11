@@ -14,11 +14,18 @@ if (process.env.NODE_ENV !== "production") {
   app.use(morgan("dev"));
 }
 
+app.use(express.static("../client/build"));
+
 app.use(cors());
 app.use(express.json());
 
 app.use("/api/auth", userRoutes);
 app.use("/api/messages", messagesRoutes);
+
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "../client/build", "index.html"));
+});
+
 //connection to mongodb
 mongoose
   .connect(process.env.MONGO_URL)
