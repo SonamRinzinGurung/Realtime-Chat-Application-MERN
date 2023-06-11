@@ -2,7 +2,6 @@ import React from "react";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import Logo from "../assets/logo.svg";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
@@ -33,14 +32,11 @@ const Register = () => {
     const { username, email, password } = values;
 
     if (handleValidation()) {
-      const { data } = await axios.post(
-        "http://localhost:5000/api/auth/register",
-        {
-          username,
-          email,
-          password,
-        }
-      );
+      const { data } = await axios.post("/api/auth/register", {
+        username,
+        email,
+        password,
+      });
       if (data.status === false) {
         toast.error(data.message, toastOptions);
       }
@@ -78,7 +74,6 @@ const Register = () => {
       <FormContainer>
         <form onSubmit={(e) => handleSubmit(e)}>
           <div className="brand">
-            <img src={Logo} alt="" />
             <h1>Chat App</h1>
           </div>
           <input

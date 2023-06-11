@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import styled from "styled-components";
-import logo from "../assets/logo.svg";
 
 const Contacts = ({ contacts, currentUser, changeChat }) => {
   const [currentUserName, setCurrentUserName] = useState(undefined);
@@ -24,7 +23,6 @@ const Contacts = ({ contacts, currentUser, changeChat }) => {
       {currentUserName && currentUserAvatar && (
         <Container>
           <div className="brand">
-            <img src={logo} alt="" />
             <h3>Chat App</h3>
           </div>
           <div className="contacts">

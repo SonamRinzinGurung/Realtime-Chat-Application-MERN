@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import Logo from "../assets/logo.svg";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
@@ -49,13 +48,10 @@ const Login = () => {
 
     if (handleValidation()) {
       try {
-        const { data } = await axios.post(
-          "http://localhost:5000/api/auth/login",
-          {
-            username,
-            password,
-          }
-        );
+        const { data } = await axios.post("/api/auth/login", {
+          username,
+          password,
+        });
         if (data.status === false) {
           toast.error(data.message, toastOptions);
         }
@@ -73,7 +69,6 @@ const Login = () => {
       <FormContainer>
         <form onSubmit={(e) => handleSubmit(e)}>
           <div className="brand">
-            <img src={Logo} alt="" />
             <h1>Chat App</h1>
           </div>
           <input

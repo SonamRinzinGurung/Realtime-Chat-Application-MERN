@@ -14,13 +14,10 @@ const ChatContainer = ({ currentChat, currentUser, socket }) => {
   }, [currentChat]);
 
   const getMessages = async () => {
-    const { data } = await axios.post(
-      `http://localhost:5000/api/messages/getmsg`,
-      {
-        from: currentUser?._id,
-        to: currentChat?._id,
-      }
-    );
+    const { data } = await axios.post(`/api/messages/getmsg`, {
+      from: currentUser?._id,
+      to: currentChat?._id,
+    });
     setMessages(data);
   };
 
@@ -34,7 +31,7 @@ const ChatContainer = ({ currentChat, currentUser, socket }) => {
   // }, [currentChat]);
 
   const handleSendMsg = async (msg) => {
-    const url = "http://localhost:5000/api/messages/addmsg";
+    const url = "/api/messages/addmsg";
     await axios.post(url, {
       from: currentUser?._id,
       to: currentChat?._id,
