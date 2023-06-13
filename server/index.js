@@ -61,4 +61,20 @@ io.on("connection", (socket) => {
       socket.to(sendUserSocket).emit("msg-receive", data.message);
     }
   });
+  socket.on("typing", (data) => {
+    const sendUserSocket = onlineUsers.get(data.to);
+    if (sendUserSocket) {
+      socket.to(sendUserSocket).emit("display", data);
+    }
+  });
+
+  socket.on("disconnect", () => {
+    for (let [key, value] of onlineUsers.entries()) {
+      if (value === socket.id) {
+        onlineUsers.delete(key);
+        console.log("user disconnected");
+        break;
+      }
+    }
+  });
 });

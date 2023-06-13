@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import Picker from "emoji-picker-react";
 import { IoMdSend } from "react-icons/io";
 import { BsEmojiSmileFill } from "react-icons/bs";
 
-const ChatInput = ({ handleSendMsg }) => {
+const ChatInput = ({ handleSendMsg, socket, currentChat, messageRef }) => {
   const [showEmoji, setShowEmoji] = useState(false);
   const [msg, setMsg] = useState("");
 
@@ -26,6 +26,29 @@ const ChatInput = ({ handleSendMsg }) => {
     }
   };
 
+  const typing = useRef(null);
+
+  let timeout;
+  const onChange = (e) => {
+    socket?.current?.emit("typing", {
+      to: currentChat?._id,
+      msg: e.target.value,
+    });
+
+    clearTimeout(timeout);
+
+    timeout = setTimeout(() => {
+      messageRef.current.innerHTML = "";
+    }, 1000);
+  };
+
+  useEffect(() => {
+    socket?.current?.on("display", (data) => {
+      console.log(data);
+      messageRef.current.innerHTML = "user is typing...";
+    });
+  }, [socket, currentChat, messageRef]);
+
   return (
     <Container>
       <div className="button-container">
@@ -40,11 +63,14 @@ const ChatInput = ({ handleSendMsg }) => {
           placeholder="type message here"
           value={msg}
           onChange={(e) => setMsg(e.target.value)}
+          onKeyUp={(e) => onChange(e)}
+          id="chat-input"
         />
         <button className="submit">
           <IoMdSend />
         </button>
       </form>
+      <div ref={typing}></div>
     </Container>
   );
 };

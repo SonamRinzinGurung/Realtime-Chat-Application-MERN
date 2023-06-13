@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from "uuid";
 const ChatContainer = ({ currentChat, currentUser, socket }) => {
   const [messages, setMessages] = useState([]);
   const scrollRef = useRef();
+  const messageRef = useRef();
   const [arrivalMessage, setArrivalMessage] = useState(null);
   useEffect(() => {
     getMessages();
@@ -20,15 +21,6 @@ const ChatContainer = ({ currentChat, currentUser, socket }) => {
     });
     setMessages(data);
   };
-
-  // useEffect(() => {
-  //   const getCurrentChat = async () => {
-  //     if (currentChat) {
-  //       await JSON.parse(localStorage.getItem("user"))._id;
-  //     }
-  //   };
-  //   getCurrentChat();
-  // }, [currentChat]);
 
   const handleSendMsg = async (msg) => {
     const url = "/api/messages/addmsg";
@@ -53,6 +45,8 @@ const ChatContainer = ({ currentChat, currentUser, socket }) => {
         setArrivalMessage({ fromSelf: false, message: msg });
       });
     }
+
+    messageRef.current.innerHTML = "";
   }, [arrivalMessage]);
 
   useEffect(() => {
@@ -91,8 +85,14 @@ const ChatContainer = ({ currentChat, currentUser, socket }) => {
             </div>
           );
         })}
+        <div className="typing" ref={messageRef}></div>
       </div>
-      <ChatInput handleSendMsg={handleSendMsg} />
+      <ChatInput
+        handleSendMsg={handleSendMsg}
+        socket={socket}
+        currentChat={currentChat}
+        messageRef={messageRef}
+      />
     </Container>
   );
 };
@@ -167,6 +167,13 @@ const Container = styled.div`
         background-color: #9900ff20;
       }
     }
+  }
+  .typing {
+    color: #d1d1d1;
+    overflow-wrap: break-word;
+    padding: 1rem;
+    font-size: 1.2rem;
+    border-radius: 1rem;
   }
 `;
 

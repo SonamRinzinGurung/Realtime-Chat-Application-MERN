@@ -6,6 +6,13 @@
 
 This is a live chat application that allows users to chat with each other in real time. Users can create a new account using a username and start chatting with other users within the application. The application was built using Node.js, Express, React.js, MongoDB, and Socket.io.
 
+### Features
+
+- Create a new account
+- Real time chat
+- View chat history
+- Typing indicator
+
 ### Technologies Used
 
 - Node.js
