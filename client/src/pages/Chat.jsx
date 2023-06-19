@@ -1,4 +1,3 @@
-import React from "react";
 import styled from "styled-components";
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
@@ -76,7 +75,6 @@ const Chat = () => {
   );
 };
 const Container = styled.div`
-  height: 100vh;
   width: 100vw;
   display: flex;
   flex-direction: column;
