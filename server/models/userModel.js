@@ -32,6 +32,13 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: "",
   },
+  contacts: [
+    {
+      type: mongoose.Types.ObjectId,
+      ref: "User",
+      default: [],
+    },
+  ],
 });
 
 module.exports = mongoose.model("User", userSchema);

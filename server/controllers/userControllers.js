@@ -24,6 +24,7 @@ module.exports.register = async (req, res, next) => {
       user: {
         username: user.username,
         email: user.email,
+        _id: user._id,
       },
       status: true,
     });
@@ -54,6 +55,7 @@ module.exports.login = async (req, res, next) => {
     }
 
     user.password = undefined;
+    user.contacts = undefined;
 
     return res.json({
       user,
@@ -70,10 +72,14 @@ module.exports.setAvatar = async (req, res, next) => {
     const userId = req.params.id;
     const avatarImg = req.body.image;
 
-    const user = await User.findByIdAndUpdate(userId, {
-      isAvatarImageSet: true,
-      avatarImage: avatarImg,
-    });
+    const user = await User.findOneAndUpdate(
+      { _id: userId },
+      {
+        isAvatarImageSet: true,
+        avatarImage: avatarImg,
+      },
+      { new: true, runValidators: true }
+    );
     return res.json({ isSet: user.isAvatarImageSet, image: user.avatarImage });
   } catch (error) {
     next(error);
@@ -83,13 +89,94 @@ module.exports.setAvatar = async (req, res, next) => {
 module.exports.getAllUsers = async (req, res, next) => {
   try {
     const userId = req.params.id;
-    const users = await User.find({ _id: { $ne: userId } }).select([
+    const { search } = req.query;
+    let users = await User.find({ _id: { $ne: userId } }).select([
       "email",
       "username",
       "avatarImage",
       "_id",
     ]);
-    return res.json(users);
+
+    if (search) {
+      users = users.filter((user) =>
+        user.username.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    // Check if the users are contacts of the current user and add a boolean property `isContact` to each user
+    const usersWithContacts = await Promise.all(
+      users.map(async (user) => {
+        const currentUser = await User.findOne({ _id: userId });
+        const isContact = currentUser.contacts.includes(user._id);
+        return { ...user._doc, isContact };
+      })
+    );
+
+    return res.json({ usersWithContacts });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Add or remove a contact
+module.exports.addContact = async (req, res, next) => {
+  try {
+    const contactId = req.params.id;
+    const userId = req.body.userId;
+
+    const currentUser = await User.findById(userId);
+
+    if (!currentUser) {
+      return res.json({ message: "User not found", status: false });
+    }
+
+    if (currentUser.contacts.includes(contactId)) {
+      currentUser.contacts = currentUser.contacts.filter(
+        (contact) => contact.toString() !== contactId
+      );
+      const updatedUser = await User.findOneAndUpdate(
+        { _id: userId },
+        { contacts: currentUser.contacts },
+        { new: true, runValidators: true }
+      );
+      updatedUser.password = undefined;
+      return res.json({
+        updatedUser,
+        message: "Contact removed",
+        isContact: false,
+      });
+    } else {
+      const updatedUser = await User.findOneAndUpdate(
+        { _id: userId },
+        { $push: { contacts: contactId } },
+        { new: true, runValidators: true }
+      );
+      updatedUser.password = undefined;
+
+      return res.json({
+        updatedUser,
+        message: "Contact added",
+        isContact: true,
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports.getContacts = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+
+    const currentUser = await User.findById(userId).populate({
+      path: "contacts",
+      select: "-isAvatarImageSet -contacts -password -__v",
+    });
+
+    let contacts = currentUser.contacts;
+
+    contacts = contacts.reverse();
+    return res.json(contacts);
   } catch (error) {
     next(error);
   }

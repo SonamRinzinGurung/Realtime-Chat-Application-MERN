@@ -43,7 +43,7 @@ const Chat = () => {
     if (currentUser) {
       if (currentUser.isAvatarImageSet) {
         const { data } = await axios.get(
-          `/api/auth/allusers/${currentUser._id}`
+          `/api/auth/getContacts/${currentUser._id}`
         );
         setContacts(data);
       } else {

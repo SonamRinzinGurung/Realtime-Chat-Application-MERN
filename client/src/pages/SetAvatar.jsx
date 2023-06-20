@@ -1,4 +1,3 @@
-import React from "react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
@@ -32,7 +31,7 @@ const SetAvatar = () => {
     } else {
       const user = await JSON.parse(localStorage.getItem("user"));
 
-      const { data } = await axios.post(`/auth/setAvatar/${user._id}`, {
+      const { data } = await axios.patch(`/api/auth/setAvatar/${user._id}`, {
         image: avatars[selectedAvatar],
       });
       if (data.isSet) {
