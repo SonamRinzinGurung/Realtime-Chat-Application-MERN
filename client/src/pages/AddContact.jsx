@@ -1,49 +1,127 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styled from "styled-components";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const AddContact = () => {
-  const [search, setSearch] = useState("");
+  const [currentUser, setCurrentUser] = useState(undefined);
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    console.log(search);
+  const [search, setSearch] = useState("");
+  const [searchResults, setSearchResults] = useState(undefined);
+  const navigate = useNavigate();
+
+  const toastOptions = {
+    position: "bottom-right",
+    autoClose: 3000,
+    pauseOnHover: true,
+    draggable: true,
+    theme: "dark",
   };
+
+  useEffect(() => {
+    if (!localStorage.getItem("user")) {
+      navigate("/login");
+    } else {
+      setCurrentUser(JSON.parse(localStorage.getItem("user")));
+      setIsLoaded(true);
+    }
+  }, [navigate]);
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    setIsLoaded(false);
+    const { data } = await axios.get(
+      `/api/auth/allusers/${currentUser?._id}?search=${search}`
+    );
+    setSearchResults(data.usersWithContacts);
+
+    setTimeout(() => {
+      setIsLoaded(true);
+    }, 500);
+  };
+
+  const handleAddOrRemoveContact = async (contactId) => {
+    const { data } = await axios.patch(`/api/auth/addContact/${contactId}`, {
+      userId: currentUser._id,
+    });
+
+    if (data.isContact === false) {
+      toast.error(data.message, toastOptions);
+    } else {
+      toast.success(data.message, toastOptions);
+    }
+
+    const updatedSearchResults = searchResults.filter((user) => {
+      if (user._id === contactId) {
+        user.isContact = data.isContact;
+      }
+      return user;
+    });
+    setSearchResults([...updatedSearchResults]);
+  };
+
   return (
-    <Container>
-      <div className="container">
-        <form onSubmit={handleSearch}>
-          <div className="innerContainer">
-            <input
-              type="text"
-              className="search"
-              name="search"
-              placeholder="Search for a user..."
-              onChange={(e) => setSearch(e.target.value)}
-              value={search}
-            />
-          </div>
-        </form>
-        <div className="searchResults">
-          <div className="userCard">
-            <img
-              src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMzEgMjMxIj48cGF0aCBkPSJNMzMuODMsMzMuODNhMTE1LjUsMTE1LjUsMCwxLDEsMCwxNjMuMzQsMTE1LjQ5LDExNS40OSwwLDAsMSwwLTE2My4zNFoiIHN0eWxlPSJmaWxsOiMwMEQwRDQ7Ii8+PHBhdGggZD0ibTExNS41IDUxLjc1YTYzLjc1IDYzLjc1IDAgMCAwLTEwLjUgMTI2LjYzdjE0LjA5YTExNS41IDExNS41IDAgMCAwLTUzLjcyOSAxOS4wMjcgMTE1LjUgMTE1LjUgMCAwIDAgMTI4LjQ2IDAgMTE1LjUgMTE1LjUgMCAwIDAtNTMuNzI5LTE5LjAyOXYtMTQuMDg0YTYzLjc1IDYzLjc1IDAgMCAwIDUzLjI1LTYyLjg4MSA2My43NSA2My43NSAwIDAgMC02My42NS02My43NSA2My43NSA2My43NSAwIDAgMC0wLjA5OTYxIDB6IiBzdHlsZT0iZmlsbDojZjJjMjgwOyIvPjxwYXRoIGQ9Im0xNDEuNzUgMTk1YzEzLjU2MyAzLjE0OTkgMjYuNDM5IDguNzQwOSAzOCAxNi41LTM4Ljg3MyAyNi4wMDEtODkuNTg3IDI2LjAwMS0xMjguNDYgMCAxMS41NjEtNy43NTkxIDI0LjQzNy0xMy4zNSAzOC0xNi41IDguNDg2OSA4LjgwMTEgMjYuMjEgMjUuNjE5IDI2LjIxIDI1LjYxOXMxNy42MDMtMTYuOTcyIDI2LjI1LTI1LjYxOXoiIHN0eWxlPSJmaWxsOiMwMDA7Ii8+PHBhdGggZD0ibTEwOSAyMzAuODEgMS42ODM2LTE0LjMzaDkuNjMyOGwxLjY4MzYgMTQuMzNjLTIuMTYgMC4xMi00LjMzIDAuMTktNi41MSAwLjE5cy00LjM1LTAuMDctNi41MS0wLjE5eiIgc3R5bGU9ImZpbGw6bm9uZTsiLz48cGF0aCBkPSJtMTI0LjE3IDIxMC42aC0xNy4zNDl2NS41M2EzLjg4MjggMy4yOSAwIDAgMCAzLjg4MjggMy4yOWg5LjU4M2EzLjg4MjggMy4yOSAwIDAgMCAzLjg4MjgtMy4yOXoiIHN0eWxlPSJmaWxsOm5vbmU7Ii8+PHBhdGggZD0ibTE0MC41NyAxOTAuMzYtMjUuMDY2IDIwLjI0NWM1Ljk2ODYgMy4yNDU1IDExLjU5NyA3LjA4MTQgMTYuOCAxMS40NSAxLjU5ODkgMS4zMzM4IDMuOTc2MiAxLjExODkgNS4zMS0wLjQ4IDAuMjEwMDUtMC4yNTc0OSAwLjM4ODAyLTAuNTM5NTYgMC41Mjk5OS0wLjg0bDEwLjgyNi0yMy44MDUtNC02Yy0wLjkwMjU2LTEuMzUxLTIuNzI5OC0xLjcxMzctNC4wOC0wLjgxLTAuMTE2MTIgMC4wNzg2LTAuMjI2NDEgMC4xNjU0OS0wLjMzIDAuMjZ6IiBzdHlsZT0iZmlsbDpub25lOyIvPjxwYXRoIGQ9Im05MC40MzQgMTkwLjM2IDI1LjA2NiAyMC4yNDVjLTUuOTY4NiAzLjI0NTUtMTEuNTk3IDcuMDgxNC0xNi44IDExLjQ1LTEuNTk4OSAxLjMzMzgtMy45NzYyIDEuMTE4OS01LjMxLTAuNDgtMC4yMTAwNS0wLjI1NzQ5LTAuMzg4MDItMC41Mzk1Ni0wLjUyOTk5LTAuODRsLTEwLjgyNi0yMy44MDUgNC02YzAuOTAyNTYtMS4zNTEgMi43Mjk4LTEuNzEzNyA0LjA4LTAuODEgMC4xMTYxMiAwLjA3ODYgMC4yMjY0MSAwLjE2NTQ5IDAuMzMgMC4yNnoiIHN0eWxlPSJmaWxsOm5vbmU7Ii8+PHBhdGggZD0ibTQxLjgzNSA3NS4xMzFjLTIuODY3NCAxMi41ODIgMS4yMzA0IDI3LjI0MSA2LjAyMzggMzkuMDMxIDAuMjU4NjEgMC42MzY1OCAwLjUxMjA4IDEuMzA3NSAwLjc5OTg5IDEuOTY4MyAwLjcxNzI2IDEuNjU4IDIuMTE4NCAzLjk3NTEgMy4wMDM4IDMuOTI2NiAwLjU2ODk1LTAuMDMxMiAwLjcxNjM3LTEuNTUxMiAxLjAyMjgtMy4xNTYyIDIuMTk4OC0xOS4wOTcgOC44OTgxLTI3LjkxNSAxNS42MzYtMzguMTA3IDIuODc4My00LjA2NDUgMy44NjE2LTcuMjI5MyAxLjA2NDQtOS45MzI1LTYuMzIzNi0zLjU1OTYtMTQuOTI0LTIuODU3NC0yMS4zNjctMC42NzQwNi0zLjIzMTIgMS40NzY1LTUuMjQyNyAzLjQ3NzMtNi4xODQyIDYuOTQzOXptMTI1LjY1LTguNTY3OWM3LjY1LTAuNzA2MTYgMTkuNzE0LTAuMTMwNyAyMS42OTQgOC41Njc5IDEuNDU1IDYuNDA4MyAwLjI2OTE1IDE3Ljc0Ny0xLjA1NDIgMjQuNTc5LTEuMTk2MSA1LjMyMDMtMy44MDY2IDE0LjIzMS03Ljg3ODIgMTkuNzUtMC41NTY1IDAuNDQ1NDQtMC45Njg4OCAwLjEzNjU2LTEuNDE1OS0xLjE2MDYtMC45MDY5Mi0zLjAzNTMtMS40Mjk4LTcuODM3Mi0yLjI1NTYtMTAuNzI3LTMuNDgyMi0xMi43OS04LjIxOTUtMjEuODc1LTE0LjQyOS0yOS45NC01LjU3ODItNi44NDE1LTQuMjE1Mi05LjcyMDcgNS4zMzkzLTExLjA2OXoiIHN0eWxlPSJmaWxsOiNlZmVmZWY7Ii8+PHBhdGggZD0ibTExMi4yNyA3My44MjZjLTE4LjU4NS03LjUyMTctMzQuOTg3LTE0Ljc5Ny00OC45MzkgNS4wMTgtNC45NzUyIDcuMDgzLTMuNzg3NiA4LjgwNTYtNC45MjE3IDAuMDc0OS0xLjYzNy0xMi40NzYtNC43NTA1LTM0LjE3NCAxLjkyNTktNDUuMTk0IDcuNjgyMi0xMi43IDE5LjMyMy0xMy4xMjggMzEuMDM5LTUuMzgxOCAxMC43OTYgNy43Nzg0IDI0LjI3NyAxNC42NDcgMzguMDE1IDEyLjIxOSAxMi43MzItMi4yNTc2IDE1LjgzNS03Ljc0NjQgMTUuNzA3LTE5LjkxMi0wLjAyMTUtMi42LTAuMDk2My01LjIxMDYtMC4yMDMzLTcuNzk5OSAxMy42MzEgMy45MjY3IDI0LjYwOSAxNC43NzYgMjYuNTEzIDI5LjA0OSAwLjg4ODA0IDYuNjMzNiAwLjI2NzQ5IDEyLjcyMi0xLjkyNTkgMTkuMDEzLTUuOTcwMiAxNy4xMDgtMzAuMTE5IDIwLjg5Ni00NS43NCAxNi44NDEtMy45NTg4LTEuMDM3OC03LjY4MjItMi40MTgxLTExLjQ3LTMuOTI2N3oiIHN0eWxlPSJmaWxsOm5vbmU7Ii8+PHBhdGggZD0ibTE3Mi43IDkwLjc1aC02LjU0Yy0wLjE0LTAuMS0wLjI2LTAuMjItMC40LTAuMy00LjQ4LTIuNzYtMjIuNzUtMi4xMS0zMy43MSAxLjItMSAwLjMtMS45MSAwLjYxLTIuNzUgMC45NC0xLjg5MzcgMC43OTI0NC0zLjg3MzkgMS4zNTk3LTUuOSAxLjY5LTUuNTA1MSAwLjc5MDAyLTEwLjQwMyAwLjc5MDAyLTE1LjkwOCAwLTIuMDI2MS0wLjMzMDM0LTQuMDA2My0wLjg5NzU2LTUuOS0xLjY5LTAuODQtMC4zMy0xLjc2LTAuNjQtMi43NS0wLjk0LTExLTMuMzEtMjkuMjMtNC0zMy43MS0xLjItMC4xMzgzMiAwLjA4ODY5LTAuMjY4OCAwLjE4OTA2LTAuMzkgMC4zaC02LjU1Yy0xLjEwNDYgMC0yIDAuODk1NDMtMiAydjQuNjZjLTAuMDAxMyAwLjk4MTg1IDAuNDkwODggMS44OTg2IDEuMzEgMi40NGwxLjkgMS4yN2MwLjU5MjM4IDAuMzg4ODkgMC45MzQ3NSAxLjA2MjIgMC45IDEuNzctMC4xNDE3NSA1LjQ4NTQgMC44ODA3MiAxMC45MzkgMyAxNiAzLjU4IDguMzggMTYgMTAuOSAyNC45MyAxMC45IDIuNjk3NiAwLjA3NzEgNS4zOTIxLTAuMjM2MSA4LTAuOTMgNC4zNS0xLjQzIDguMjQtNy4zNiAxMC40NS0xMi40MiAxLjc2MDctMy44NTA2IDIuNzQ5My04LjAwOSAyLjkxLTEyLjI0IDcuM2UtNCAtMC43MTM4IDAuMzgxODMtMS4zNzMxIDEtMS43MyAzLjIyODEtMS45NTEgNi41Nzk4LTEuOTUxIDkuODA3OSAwIDAuNjE4MTcgMC4zNTY5IDAuOTk5MjcgMS4wMTYyIDEgMS43MyAwLjE2MDY3IDQuMjMxIDEuMTQ5MyA4LjM4OTQgMi45MSAxMi4yNCAyLjIxIDUuMDYgNi4xIDExIDEwLjQ1IDEyLjQyIDIuNjA3OSAwLjY5MzkgNS4zMDI0IDEuMDA3MSA4IDAuOTMgOC45MiAwIDIxLjM1LTIuNTIgMjQuOTMtMTAuOSAyLjExOTMtNS4wNjE0IDMuMTQxOC0xMC41MTUgMy0xNi0wLjAzNDgtMC43MDc3OCAwLjMwNzYyLTEuMzgxMSAwLjktMS43N2wxLjktMS4yN2MwLjgxOTEzLTAuNTQxMzYgMS4zMTEzLTEuNDU4MiAxLjMxLTIuNDR2LTQuNmMwLjAzMzYtMS4xMDQ4LTAuODM1MjEtMi4wMjc0LTEuOTQtMi4wNnoiIHN0eWxlPSJmaWxsOiMwMDA7c3Ryb2tlLWxpbmVjYXA6cm91bmQ7c3Ryb2tlLWxpbmVqb2luOnJvdW5kO3N0cm9rZS13aWR0aDoyLjU7c3Ryb2tlOiMwMGZmZGM7Ii8+PHBhdGggZD0ibTEyNy44NCAxNDYuNzNjLTIuMjQgOC45My02LjkyIDE1LjA4LTEyLjM0IDE1LjA4cy0xMC4xLTYuMTUtMTIuMzQtMTUuMDh6IiBzdHlsZT0iZmlsbDojZmYwMDAwO3N0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1saW5lam9pbjpyb3VuZDtzdHJva2Utd2lkdGg6Mi45OTk5cHg7c3Ryb2tlOm5vbmU7Ii8+PC9zdmc+"
-              alt=""
-              className="avatar"
-            />
-            <h3 className="username">@username</h3>
-          </div>
-          <div className="userCard">
-            <img
-              src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMzEgMjMxIj48cGF0aCBkPSJNMzMuODMsMzMuODNhMTE1LjUsMTE1LjUsMCwxLDEsMCwxNjMuMzQsMTE1LjQ5LDExNS40OSwwLDAsMSwwLTE2My4zNFoiIHN0eWxlPSJmaWxsOiMwMEQwRDQ7Ii8+PHBhdGggZD0ibTExNS41IDUxLjc1YTYzLjc1IDYzLjc1IDAgMCAwLTEwLjUgMTI2LjYzdjE0LjA5YTExNS41IDExNS41IDAgMCAwLTUzLjcyOSAxOS4wMjcgMTE1LjUgMTE1LjUgMCAwIDAgMTI4LjQ2IDAgMTE1LjUgMTE1LjUgMCAwIDAtNTMuNzI5LTE5LjAyOXYtMTQuMDg0YTYzLjc1IDYzLjc1IDAgMCAwIDUzLjI1LTYyLjg4MSA2My43NSA2My43NSAwIDAgMC02My42NS02My43NSA2My43NSA2My43NSAwIDAgMC0wLjA5OTYxIDB6IiBzdHlsZT0iZmlsbDojZjJjMjgwOyIvPjxwYXRoIGQ9Im0xNDEuNzUgMTk1YzEzLjU2MyAzLjE0OTkgMjYuNDM5IDguNzQwOSAzOCAxNi41LTM4Ljg3MyAyNi4wMDEtODkuNTg3IDI2LjAwMS0xMjguNDYgMCAxMS41NjEtNy43NTkxIDI0LjQzNy0xMy4zNSAzOC0xNi41IDguNDg2OSA4LjgwMTEgMjYuMjEgMjUuNjE5IDI2LjIxIDI1LjYxOXMxNy42MDMtMTYuOTcyIDI2LjI1LTI1LjYxOXoiIHN0eWxlPSJmaWxsOiMwMDA7Ii8+PHBhdGggZD0ibTEwOSAyMzAuODEgMS42ODM2LTE0LjMzaDkuNjMyOGwxLjY4MzYgMTQuMzNjLTIuMTYgMC4xMi00LjMzIDAuMTktNi41MSAwLjE5cy00LjM1LTAuMDctNi41MS0wLjE5eiIgc3R5bGU9ImZpbGw6bm9uZTsiLz48cGF0aCBkPSJtMTI0LjE3IDIxMC42aC0xNy4zNDl2NS41M2EzLjg4MjggMy4yOSAwIDAgMCAzLjg4MjggMy4yOWg5LjU4M2EzLjg4MjggMy4yOSAwIDAgMCAzLjg4MjgtMy4yOXoiIHN0eWxlPSJmaWxsOm5vbmU7Ii8+PHBhdGggZD0ibTE0MC41NyAxOTAuMzYtMjUuMDY2IDIwLjI0NWM1Ljk2ODYgMy4yNDU1IDExLjU5NyA3LjA4MTQgMTYuOCAxMS40NSAxLjU5ODkgMS4zMzM4IDMuOTc2MiAxLjExODkgNS4zMS0wLjQ4IDAuMjEwMDUtMC4yNTc0OSAwLjM4ODAyLTAuNTM5NTYgMC41Mjk5OS0wLjg0bDEwLjgyNi0yMy44MDUtNC02Yy0wLjkwMjU2LTEuMzUxLTIuNzI5OC0xLjcxMzctNC4wOC0wLjgxLTAuMTE2MTIgMC4wNzg2LTAuMjI2NDEgMC4xNjU0OS0wLjMzIDAuMjZ6IiBzdHlsZT0iZmlsbDpub25lOyIvPjxwYXRoIGQ9Im05MC40MzQgMTkwLjM2IDI1LjA2NiAyMC4yNDVjLTUuOTY4NiAzLjI0NTUtMTEuNTk3IDcuMDgxNC0xNi44IDExLjQ1LTEuNTk4OSAxLjMzMzgtMy45NzYyIDEuMTE4OS01LjMxLTAuNDgtMC4yMTAwNS0wLjI1NzQ5LTAuMzg4MDItMC41Mzk1Ni0wLjUyOTk5LTAuODRsLTEwLjgyNi0yMy44MDUgNC02YzAuOTAyNTYtMS4zNTEgMi43Mjk4LTEuNzEzNyA0LjA4LTAuODEgMC4xMTYxMiAwLjA3ODYgMC4yMjY0MSAwLjE2NTQ5IDAuMzMgMC4yNnoiIHN0eWxlPSJmaWxsOm5vbmU7Ii8+PHBhdGggZD0ibTQxLjgzNSA3NS4xMzFjLTIuODY3NCAxMi41ODIgMS4yMzA0IDI3LjI0MSA2LjAyMzggMzkuMDMxIDAuMjU4NjEgMC42MzY1OCAwLjUxMjA4IDEuMzA3NSAwLjc5OTg5IDEuOTY4MyAwLjcxNzI2IDEuNjU4IDIuMTE4NCAzLjk3NTEgMy4wMDM4IDMuOTI2NiAwLjU2ODk1LTAuMDMxMiAwLjcxNjM3LTEuNTUxMiAxLjAyMjgtMy4xNTYyIDIuMTk4OC0xOS4wOTcgOC44OTgxLTI3LjkxNSAxNS42MzYtMzguMTA3IDIuODc4My00LjA2NDUgMy44NjE2LTcuMjI5MyAxLjA2NDQtOS45MzI1LTYuMzIzNi0zLjU1OTYtMTQuOTI0LTIuODU3NC0yMS4zNjctMC42NzQwNi0zLjIzMTIgMS40NzY1LTUuMjQyNyAzLjQ3NzMtNi4xODQyIDYuOTQzOXptMTI1LjY1LTguNTY3OWM3LjY1LTAuNzA2MTYgMTkuNzE0LTAuMTMwNyAyMS42OTQgOC41Njc5IDEuNDU1IDYuNDA4MyAwLjI2OTE1IDE3Ljc0Ny0xLjA1NDIgMjQuNTc5LTEuMTk2MSA1LjMyMDMtMy44MDY2IDE0LjIzMS03Ljg3ODIgMTkuNzUtMC41NTY1IDAuNDQ1NDQtMC45Njg4OCAwLjEzNjU2LTEuNDE1OS0xLjE2MDYtMC45MDY5Mi0zLjAzNTMtMS40Mjk4LTcuODM3Mi0yLjI1NTYtMTAuNzI3LTMuNDgyMi0xMi43OS04LjIxOTUtMjEuODc1LTE0LjQyOS0yOS45NC01LjU3ODItNi44NDE1LTQuMjE1Mi05LjcyMDcgNS4zMzkzLTExLjA2OXoiIHN0eWxlPSJmaWxsOiNlZmVmZWY7Ii8+PHBhdGggZD0ibTExMi4yNyA3My44MjZjLTE4LjU4NS03LjUyMTctMzQuOTg3LTE0Ljc5Ny00OC45MzkgNS4wMTgtNC45NzUyIDcuMDgzLTMuNzg3NiA4LjgwNTYtNC45MjE3IDAuMDc0OS0xLjYzNy0xMi40NzYtNC43NTA1LTM0LjE3NCAxLjkyNTktNDUuMTk0IDcuNjgyMi0xMi43IDE5LjMyMy0xMy4xMjggMzEuMDM5LTUuMzgxOCAxMC43OTYgNy43Nzg0IDI0LjI3NyAxNC42NDcgMzguMDE1IDEyLjIxOSAxMi43MzItMi4yNTc2IDE1LjgzNS03Ljc0NjQgMTUuNzA3LTE5LjkxMi0wLjAyMTUtMi42LTAuMDk2My01LjIxMDYtMC4yMDMzLTcuNzk5OSAxMy42MzEgMy45MjY3IDI0LjYwOSAxNC43NzYgMjYuNTEzIDI5LjA0OSAwLjg4ODA0IDYuNjMzNiAwLjI2NzQ5IDEyLjcyMi0xLjkyNTkgMTkuMDEzLTUuOTcwMiAxNy4xMDgtMzAuMTE5IDIwLjg5Ni00NS43NCAxNi44NDEtMy45NTg4LTEuMDM3OC03LjY4MjItMi40MTgxLTExLjQ3LTMuOTI2N3oiIHN0eWxlPSJmaWxsOm5vbmU7Ii8+PHBhdGggZD0ibTE3Mi43IDkwLjc1aC02LjU0Yy0wLjE0LTAuMS0wLjI2LTAuMjItMC40LTAuMy00LjQ4LTIuNzYtMjIuNzUtMi4xMS0zMy43MSAxLjItMSAwLjMtMS45MSAwLjYxLTIuNzUgMC45NC0xLjg5MzcgMC43OTI0NC0zLjg3MzkgMS4zNTk3LTUuOSAxLjY5LTUuNTA1MSAwLjc5MDAyLTEwLjQwMyAwLjc5MDAyLTE1LjkwOCAwLTIuMDI2MS0wLjMzMDM0LTQuMDA2My0wLjg5NzU2LTUuOS0xLjY5LTAuODQtMC4zMy0xLjc2LTAuNjQtMi43NS0wLjk0LTExLTMuMzEtMjkuMjMtNC0zMy43MS0xLjItMC4xMzgzMiAwLjA4ODY5LTAuMjY4OCAwLjE4OTA2LTAuMzkgMC4zaC02LjU1Yy0xLjEwNDYgMC0yIDAuODk1NDMtMiAydjQuNjZjLTAuMDAxMyAwLjk4MTg1IDAuNDkwODggMS44OTg2IDEuMzEgMi40NGwxLjkgMS4yN2MwLjU5MjM4IDAuMzg4ODkgMC45MzQ3NSAxLjA2MjIgMC45IDEuNzctMC4xNDE3NSA1LjQ4NTQgMC44ODA3MiAxMC45MzkgMyAxNiAzLjU4IDguMzggMTYgMTAuOSAyNC45MyAxMC45IDIuNjk3NiAwLjA3NzEgNS4zOTIxLTAuMjM2MSA4LTAuOTMgNC4zNS0xLjQzIDguMjQtNy4zNiAxMC40NS0xMi40MiAxLjc2MDctMy44NTA2IDIuNzQ5My04LjAwOSAyLjkxLTEyLjI0IDcuM2UtNCAtMC43MTM4IDAuMzgxODMtMS4zNzMxIDEtMS43MyAzLjIyODEtMS45NTEgNi41Nzk4LTEuOTUxIDkuODA3OSAwIDAuNjE4MTcgMC4zNTY5IDAuOTk5MjcgMS4wMTYyIDEgMS43MyAwLjE2MDY3IDQuMjMxIDEuMTQ5MyA4LjM4OTQgMi45MSAxMi4yNCAyLjIxIDUuMDYgNi4xIDExIDEwLjQ1IDEyLjQyIDIuNjA3OSAwLjY5MzkgNS4zMDI0IDEuMDA3MSA4IDAuOTMgOC45MiAwIDIxLjM1LTIuNTIgMjQuOTMtMTAuOSAyLjExOTMtNS4wNjE0IDMuMTQxOC0xMC41MTUgMy0xNi0wLjAzNDgtMC43MDc3OCAwLjMwNzYyLTEuMzgxMSAwLjktMS43N2wxLjktMS4yN2MwLjgxOTEzLTAuNTQxMzYgMS4zMTEzLTEuNDU4MiAxLjMxLTIuNDR2LTQuNmMwLjAzMzYtMS4xMDQ4LTAuODM1MjEtMi4wMjc0LTEuOTQtMi4wNnoiIHN0eWxlPSJmaWxsOiMwMDA7c3Ryb2tlLWxpbmVjYXA6cm91bmQ7c3Ryb2tlLWxpbmVqb2luOnJvdW5kO3N0cm9rZS13aWR0aDoyLjU7c3Ryb2tlOiMwMGZmZGM7Ii8+PHBhdGggZD0ibTEyNy44NCAxNDYuNzNjLTIuMjQgOC45My02LjkyIDE1LjA4LTEyLjM0IDE1LjA4cy0xMC4xLTYuMTUtMTIuMzQtMTUuMDh6IiBzdHlsZT0iZmlsbDojZmYwMDAwO3N0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1saW5lam9pbjpyb3VuZDtzdHJva2Utd2lkdGg6Mi45OTk5cHg7c3Ryb2tlOm5vbmU7Ii8+PC9zdmc+"
-              alt=""
-              className="avatar"
-            />
-            <h3 className="username">@username</h3>
+    <>
+      <Container>
+        <div className="container">
+          <form onSubmit={handleSearch}>
+            <div className="innerContainer">
+              <input
+                type="text"
+                className="search"
+                name="search"
+                placeholder="Search for a user..."
+                onChange={(e) => setSearch(e.target.value)}
+                value={search}
+              />
+            </div>
+          </form>
+          <div className="searchResults">
+            {isLoaded &&
+              (searchResults?.length === 0 ? (
+                <h3 className="message">No user found</h3>
+              ) : (
+                searchResults?.map((user) => (
+                  <div className="userCard" key={user._id}>
+                    <div className="userInfo">
+                      <img
+                        src={`data:image/svg+xml;base64,${user.avatarImage}`}
+                        alt="avatar"
+                        className="avatar"
+                      />
+                      <h3 className="username">@{user.username}</h3>
+                    </div>
+                    {user.isContact ? (
+                      <button
+                        className="removeContact"
+                        onClick={() => handleAddOrRemoveContact(user._id)}
+                      >
+                        Remove
+                      </button>
+                    ) : (
+                      <button
+                        className="addContact"
+                        onClick={() => handleAddOrRemoveContact(user._id)}
+                      >
+                        Add
+                      </button>
+                    )}
+                  </div>
+                ))
+              ))}
+            {isLoaded && searchResults === undefined && (
+              <h3 className="message">Search for a user...</h3>
+            )}
+            {!isLoaded && <h3 className="message">Searching for users...</h3>}
           </div>
         </div>
-      </div>
-      ;
-    </Container>
+        ;
+      </Container>
+      <ToastContainer />
+    </>
   );
 };
 
@@ -105,9 +183,8 @@ const Container = styled.div`
   }
   .userCard {
     display: flex;
-    justify-content: center;
+    justify-content: space-around;
     align-items: center;
-    gap: 1rem;
     width: 80%;
     height: 5rem;
     background-color: #ababab;
@@ -119,12 +196,45 @@ const Container = styled.div`
       }
     }
     transition: 0.3s ease-in-out;
-    cursor: pointer;
+  }
+  .userInfo {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 1rem;
+    width: 50%;
   }
   .username {
     font-size: 1.5rem;
     font-weight: 500;
     color: #000000;
+  }
+  .message {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: #ffffff;
+  }
+  .addContact {
+    background-color: #286300;
+    color: #ffffff;
+    font-size: 1.2rem;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 1rem;
+    border: none;
+    outline: none;
+    cursor: pointer;
+  }
+  .removeContact {
+    background-color: #8f1818;
+    color: #ffffff;
+    font-size: 1.2rem;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 1rem;
+    border: none;
+    outline: none;
+    cursor: pointer;
   }
 `;
 

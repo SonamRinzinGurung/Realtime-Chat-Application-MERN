@@ -61,8 +61,8 @@ const SetAvatar = () => {
   }, []);
   return (
     <>
-      {isLoading && <img src={loader} alt="loader" />}
       <Container>
+        {isLoading && <img src={loader} alt="loader" className="loader" />}
         <div className="title-container">
           <h1>Pick one avatar as your pfp</h1>
         </div>
@@ -104,6 +104,8 @@ const Container = styled.div`
   width: 100vw;
   .loader {
     max-inline-size: 100%;
+    max-block-size: 100%;
+    height: 10rem;
   }
   .title-container {
     h1 {

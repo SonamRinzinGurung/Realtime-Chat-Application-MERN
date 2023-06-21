@@ -4,11 +4,12 @@
 
 ### Description
 
-This is a live chat application that allows users to chat with each other in real time. Users can create a new account using a username and start chatting with other users within the application. The application was built using Node.js, Express, React.js, MongoDB, and Socket.io.
+This is a live chat application that allows users to chat with each other in real time. Users can create a new account using a username, add users to their contact list and start chatting with other users within the application. The application was built using Node.js, Express, React.js, MongoDB, and Socket.io.
 
 ### Features
 
 - Create a new account
+- Add Users to Contact list
 - Real time chat
 - View chat history
 - Typing indicator
@@ -41,7 +42,7 @@ npm start
 
 #### Screenshot of the application
 
-<img width="960" alt="image" src="https://github.com/SonamRinzinGurung/Realtime-Chat-Application-MERN/assets/100353887/835aadc8-3d07-4877-96a2-c32724b2033c">
+<img width="960" alt="image" src="https://github.com/SonamRinzinGurung/Realtime-Chat-Application-MERN/assets/100353887/4dcf59b3-d1f1-4a89-adaa-df4fef368504">
 
 ### Author
 
