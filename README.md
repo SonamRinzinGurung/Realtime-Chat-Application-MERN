@@ -16,11 +16,12 @@ This is a live chat application that allows users to chat with each other in rea
 
 ### Technologies Used
 
-- Node.js
-- Express
-- React.js
-- MongoDB
-- Socket.io
+- [Socket.io](https://socket.io/)
+- [React.js](https://reactjs.org/)
+- [Node.js](https://nodejs.org/en/)
+- [Express](https://expressjs.com/)
+- [MongoDB](https://www.mongodb.com/)
+- [Mongoose](https://mongoosejs.com/)
 
 ### Installation
 
@@ -40,19 +41,11 @@ PORT = 5000
 npm start
 ```
 
-#### Screenshot of the application
+#### Site Preview
 
-<img width="960" alt="image" src="https://github.com/SonamRinzinGurung/Realtime-Chat-Application-MERN/assets/100353887/4dcf59b3-d1f1-4a89-adaa-df4fef368504">
+<img width="960" alt="image" src="https://res.cloudinary.com/ddr8aveca/image/upload/v1715490384/github%20storage/q9eypwfdl1ahktw6byys.png">
 
 ### Author
 
-[Sonam Rinzin Gurung](https://github.com/SonamRinzinGurung)
+[Sonam Rinzin Gurung](https://www.linkedin.com/in/sonam-rinzin-gurung-59060b211/)
 
-### Acknowledgments
-
-- [Socket.io](https://socket.io/)
-- [React.js](https://reactjs.org/)
-- [Node.js](https://nodejs.org/en/)
-- [Express](https://expressjs.com/)
-- [MongoDB](https://www.mongodb.com/)
-- [Mongoose](https://mongoosejs.com/)

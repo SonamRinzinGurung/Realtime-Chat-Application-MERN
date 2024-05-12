@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 
 const app = express();
 const socket = require("socket.io");
-
+const path = require("path");
 require("dotenv").config();
 const morgan = require("morgan");
 const userRoutes = require("./routes/userRoutes");
@@ -16,7 +16,11 @@ if (process.env.NODE_ENV !== "production") {
 
 app.use(express.static("../client/build"));
 
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL,
+  })
+);
 app.use(express.json());
 
 app.use("/api/auth", userRoutes);
